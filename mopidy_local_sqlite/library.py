@@ -38,6 +38,8 @@ class SQLiteLibrary(local.Library):
             self._directories.append(ref)
         self._dbpath = os.path.join(self._data_dir, b'library.db')
         self._connection = None
+        self._changes_since_last_commit = 0
+        self._max_changes_since_last_commit = 100
 
     def load(self):
         with self._connect() as connection:
@@ -91,15 +93,24 @@ class SQLiteLibrary(local.Library):
     def begin(self):
         return schema.tracks(self._connect())
 
+    def _incremental_commit(self):
+        if self._changes_since_last_commit > self._max_changes_since_last_commit:
+            self._connection.commit()
+            self._changes_since_last_commit = 0
+
     def add(self, track):
+        self._incremental_commit()
         try:
             track = self._validate_track(track)
             schema.insert_track(self._connect(), track)
+            self._changes_since_last_commit += 1
         except Exception as e:
             logger.warn('Skipped %s: %s', track.uri, e)
 
     def remove(self, uri):
+        self._incremental_commit()
         schema.delete_track(self._connect(), uri)
+        self._changes_since_last_commit += 1
 
     def flush(self):
         if not self._connection:

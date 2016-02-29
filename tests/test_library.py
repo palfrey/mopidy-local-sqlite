@@ -50,6 +50,20 @@ class LocalLibraryProviderTest(unittest.TestCase):
         self.library.close()
         self.assertEqual([track], self.library.lookup(uri))
 
+    def test_add_multiple(self):
+        name = b'Test.mp3'
+        uri = translator.path_to_local_track_uri(name)
+        track = Track(name=name, uri=uri)
+        self.library._max_changes_since_last_commit = 0
+        self.library.begin()
+        self.assertEqual(0, self.library._changes_since_last_commit)
+        self.library.add(track)
+        self.assertEqual(1, self.library._changes_since_last_commit)
+        self.library.add(track)
+        self.assertEqual(1, self.library._changes_since_last_commit)
+        self.library.close()
+        self.assertEqual([track], self.library.lookup(uri))
+
     def test_add_noname_utf8(self):
         name = u'Mi\xf0vikudags.mp3'
         uri = translator.path_to_local_track_uri(name.encode('utf-8'))
