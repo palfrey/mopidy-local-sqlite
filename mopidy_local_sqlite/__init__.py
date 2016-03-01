@@ -27,6 +27,7 @@ class Extension(ext.Extension):
         schema['use_album_mbid_uri'] = config.Boolean()
         schema['use_artist_mbid_uri'] = config.Boolean()
         schema['use_artist_sortname'] = config.Boolean()
+        schema['changes_per_commit'] = config.Integer()
         # no longer used
         schema['search_limit'] = config.Deprecated()
         schema['extract_images'] = config.Deprecated()

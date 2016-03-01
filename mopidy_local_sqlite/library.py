@@ -39,7 +39,7 @@ class SQLiteLibrary(local.Library):
         self._dbpath = os.path.join(self._data_dir, b'library.db')
         self._connection = None
         self._changes_since_last_commit = 0
-        self._max_changes_since_last_commit = 100
+        self._max_changes_since_last_commit = ext_config["changes_per_commit"]
 
     def load(self):
         with self._connect() as connection:
@@ -94,7 +94,7 @@ class SQLiteLibrary(local.Library):
         return schema.tracks(self._connect())
 
     def _incremental_commit(self):
-        if self._changes_since_last_commit > self._max_changes_since_last_commit:
+        if self._changes_since_last_commit != -1 and self._changes_since_last_commit > self._max_changes_since_last_commit:
             self._connection.commit()
             self._changes_since_last_commit = 0
 
